@@ -16,7 +16,7 @@ def main():
 
     parser = argparse.ArgumentParser(description='Anime-to-sketch test options.')
     parser.add_argument("--host",     type=str,  default="0.0.0.0",  help="サービスを提供するip アドレスを指定。")
-    parser.add_argument("--port",   type=int,  default=50001,       help="サービスを提供するポートを指定。")
+    parser.add_argument("--port",   type=int,  default=80,       help="サービスを提供するポートを指定。")
     parser.add_argument('--wg', default='./weights/ssd_best8.pth', type=str) 
     parser.add_argument('--dataroot', default='./image/a' ,type=str)
     parser.add_argument('--filename', default='./image/test2.jpg' ,type=str)
@@ -45,9 +45,9 @@ def main():
         img_data, dnum, predict_bbox, pre_dict_label_index, scores =AF.face_det(img_data,confidence_level)
         print("dnum=",dnum,"bbox=",predict_bbox,"label=",pre_dict_label_index,"score=",scores)
 
-        cv2.imshow("color",img_data)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+        #cv2.imshow("color",img_data)
+    #cv2.waitKey(0)
+    #cv2.destroyAllWindows()
     
     #face_det_sq
     if  test==3:
@@ -59,9 +59,9 @@ def main():
         img_data, dnum, predict_bbox, pre_dict_label_index, scores =AF.face_det(img_data,confidence_level)
         print("dnum=",dnum,"bbox=",predict_bbox,"label=",pre_dict_label_index,"score=",scores)
 
-        cv2.imshow("color",img_data)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+        #cv2.imshow("color",img_data)
+    #cv2.waitKey(0)
+    #cv2.destroyAllWindows()
     
     #face_det_head(self,img_data,ratio,shift,confidence_level)
     if  test==4:
@@ -79,9 +79,9 @@ def main():
         img_data, dnum, predict_bbox, pre_dict_label_index, scores =AF.face_det_head(img_data)
         print("dnum=",dnum,"bbox=",predict_bbox,"label=",pre_dict_label_index,"score=",scores)
 
-        cv2.imshow("color",img_data)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+        #cv2.imshow("color",img_data)
+    #cv2.waitKey(0)
+    #cv2.destroyAllWindows()
 
 """
 ################################# FUNCTION ############################################

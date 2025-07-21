@@ -15,7 +15,7 @@ AF = AnimeFaceDetect()
 # コマンドライン引数の設定
 parser = argparse.ArgumentParser(description='顔検出サーバー設定')
 parser.add_argument("--host", type=str, default="127.0.0.1", help="サービスを提供するIPアドレスを指定")
-parser.add_argument("--port", type=int, default=50001, help="サービスを提供するポートを指定")
+parser.add_argument("--port", type=int, default=80, help="サービスを提供するポートを指定")
 args = parser.parse_args()
 
 # IPアドレスとポートの表示
