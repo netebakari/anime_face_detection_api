@@ -1,30 +1,28 @@
 # Anime_face_detection
+高精度アニメ顔検出SSD
 
-厳選した学習データセットを用いて独自に学習したモデルを利用する高精度アニメ顔検出SSDです。
-
-検出タグ　girl　boy　big　small　
-
-コンフィデンスレベル
-
-環境構築
-
-### 参考
-
-tkh作成後　リポジトリから作成したtkhへrequirements.txt　をコピーします
-
-または仮想環境をアクティベート後にリポへ移動してpip install -r requirements.txt
-```
-python3.11 -m venv tkh
-source tkh/bin/activate
-cd tkh
-pip install -r requirements.txt
+### ビルド
+```sh
+$ docker compose build
 ```
 
-checkポイントのダウンロード
+### checkpointのダウンロード
+[UZUKI/webapp1 at main](https://huggingface.co/UZUKI/anime-face-detection/tree/main) から `ssd_best8.pth` をダウンロードして `weights/` に配置。
 
-https://huggingface.co/UZUKI/webapp1/tree/main
+このディレクトリはコンテナに含まれずマウントするだけなので他のコンテナ等と使い回せる。
 
-ssd_best8.pth　をダウンロードして　weightsに移動させる
+### 起動
+```sh
+$ docker compose up -d
+```
 
+8081番ポートで待ち受け開始
 
-ライセンス　MIT
+### テスト
+（ここはそのうち直す）
+
+```
+$ docker compose exec web python face_d_api_client_test.py --test 3 --filename image/test1.jpg
+```
+
+これで結果が返ってくればOK
