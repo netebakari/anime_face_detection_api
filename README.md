@@ -21,6 +21,8 @@ $ docker compose up -d
 ### テスト
 （ここはそのうち直す）
 
+image ディレクトリにファイルを追加して
+
 ```
 $ docker compose exec web python face_d_api_client_test.py --test 3 --filename image/test1.jpg
 ```
