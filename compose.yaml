@@ -5,4 +5,4 @@ services:
       - "8081:80"
     volumes:
       - ./weights/:/app/weights/
-
+      - ./image/:/app/image/
