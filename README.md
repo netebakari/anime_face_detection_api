@@ -1,30 +1,43 @@
-# Anime_face_detection
-高精度アニメ顔検出SSD
+# Anime_face_detection_api
+アニメ顔検出API。フォーク元の [animede/anime_face_detection](https://github.com/animede/anime_face_detection) をDockerに載せてWeb APIとして整備したもの。
 
-### ビルド
+# 利用方法
+## 1. ビルド
 ```sh
-$ docker compose build
+docker compose build
 ```
 
-### checkpointのダウンロード
-[UZUKI/webapp1 at main](https://huggingface.co/UZUKI/anime-face-detection/tree/main) から `ssd_best8.pth` をダウンロードして `weights/` に配置。
+チェックポイントのダウンロードもDockerfileの中で行っている。
 
-このディレクトリはコンテナに含まれずマウントするだけなので他のコンテナ等と使い回せる。
-
-### 起動
+## 2. 起動
 ```sh
-$ docker compose up -d
+docker compose up -d
 ```
 
-8081番ポートで待ち受け開始
+8081番ポートでAPIが待ち受け開始する。
 
-### テスト
-（ここはそのうち直す）
-
-image ディレクトリにファイルを追加して
-
+## 3. 動作確認
+```sh
+$ curl -s "http://localhost:8081/face/" -F "file=@test.png" | jq
+{
+  "character_count": 1,
+  "image_size": [
+    1198,
+    1800
+  ],
+  "data": [
+    {
+      "score": 0.9974053502082825,
+      "box": [
+        377,
+        252,
+        697,
+        528
+      ],
+      "label": "girl"
+    }
+  ]
+}
 ```
-$ docker compose exec web python face_d_api_client_test.py --test 3 --filename image/test1.jpg
-```
 
-これで結果が返ってくればOK
+画像ファイルだと決め打ちしてOpenCVに渡して処理しているため `Content-Type` の指定は必須ではない。
