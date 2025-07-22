@@ -1,8 +1,5 @@
 services:
-  web:
+  detector:
     build: .
     ports:
       - "8081:80"
-    volumes:
-      - ./weights/:/app/weights/
-      - ./image/:/app/image/

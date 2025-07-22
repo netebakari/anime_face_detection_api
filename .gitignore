@@ -1,4 +1,2 @@
-weights/*
-!weights/weights
 image/*
 !image/.gitkeep
