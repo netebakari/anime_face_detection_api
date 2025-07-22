@@ -1,5 +1,5 @@
 # Anime_face_detection_api
-アニメ顔検出API。フォーク元の [animede/anime_face_detection](https://github.com/animede/anime_face_detection) をDockerに載せてWeb APIとして整備したもの。
+アニメ顔検出API。フォーク元の [animede/anime_face_detection](https://github.com/animede/anime_face_detection) をDockerに載せてWeb APIとして整備 + Web I/Fを追加したもの。
 
 ![デモ](./images/demo.png "デモ")
 
@@ -18,11 +18,15 @@ docker compose up -d
 
 * 8081番ポートでAPIが待ち受け開始する。
 * 動作確認用のWebページが http://localhost:8080 で起動する。
-* バッティングする場合は適宜 `compose.yaml` または `compose.override.yaml` を更新すること。
+* ポート番号がバッティングする場合は適宜 `compose.yaml` または `compose.override.yaml` を更新すること。
 
-## 3. 動作確認 (curl)
+## 3. 動作確認 (Web I/F)
+http://localhost:8080 を開いて画像をアップロードすると、顔認識の結果が表示される。
+
+## 4. 動作確認 (curl)
 ```sh
-$ curl -s "http://localhost:8081/face/?type=square&confidence_level=0.5" -F "file=@images/anime-girl-in-autumn.jpg" | jq
+$ curl -s "http://localhost:8081/face/?type=square&confidence_level=0.5" \
+    -F "file=@images/anime-girl-in-autumn.jpg" | jq
 {
   "character_count": 1,
   "image_size": [
@@ -44,4 +48,5 @@ $ curl -s "http://localhost:8081/face/?type=square&confidence_level=0.5" -F "fil
 }
 ```
 
-画像ファイルだと決め打ちしてOpenCVに渡して処理しているため `Content-Type` の指定は必須ではない。
+* やっていることは上記の動作確認用Web I/Fとまったく同じ。
+* 画像ファイルだと決め打ちしてOpenCVに渡して処理しているため `Content-Type` の指定は必須ではない。
