@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>画像アップローダー</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        canvas {
+            background-color: #f0f0f0;
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-[800px] bg-white rounded-lg shadow-lg p-8 space-y-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 items-end">
+            <div>
+                <label for="detectionMethod" class="block text-sm font-medium text-gray-700">検出方法</label>
+                <select id="detectionMethod" name="detectionMethod" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <option>standard</option>
+                    <option>square</option>
+                    <option>head</option>
+                </select>
+            </div>
+            <div>
+                <label for="confidence" class="block text-sm font-medium text-gray-700">信頼度</label>
+                <input type="number" name="confidence" id="confidence" min="0" max="1.0" step="0.01" value="0.5" class="form-input mt-1 block w-full">
+            </div>
+            <div>
+                <label for="ratio" class="block text-sm font-medium text-gray-700">比率</label>
+                <input type="number" name="ratio" id="ratio" min="0.5" max="2.0" step="0.1" value="1.72" class="form-input mt-1 block w-full">
+            </div>
+            <div>
+                <label for="shift" class="block text-sm font-medium text-gray-700">シフト</label>
+                <input type="number" name="shift" id="shift" min="0" max="1.0" step="0.01" value="0.32" class="form-input mt-1 block w-full">
+            </div>
+        </div>
+        <div class="flex justify-center">
+            <label for="imageLoader" class="cursor-pointer bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-300 shadow-md">
+                画像を選択
+            </label>
+            <input type="file" id="imageLoader" accept="image/*" class="hidden">
+        </div>
+
+        <!-- アップロードされた画像を表示するcanvas要素 -->
+        <div class="w-full flex justify-center">
+            <canvas id="imageCanvas" width="800" height="800"></canvas>
+        </div>
+
+        <!-- 処理状況を表示するメッセージエリア -->
+        <div id="messageArea" class="text-center text-gray-500 h-6"></div>
+    </div>
+</body>
+<script>
+    const imageLoader = document.getElementById('imageLoader');
+    const canvas = document.getElementById('imageCanvas');
+    const ctx = canvas.getContext('2d');
+    const messageArea = document.getElementById('messageArea');
+
+    // ファイル選択ボタンが変更されたときの処理
+    imageLoader.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) {
+            return;
+        }
+
+        // FileReaderを使って画像を読み込む
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                // canvasのサイズを画像の比率に合わせる
+                const aspectRatio = img.width / img.height;
+                const maxWidth = 800; // canvasの最大幅
+                let newWidth = maxWidth;
+                let newHeight = newWidth / aspectRatio;
+
+                if (newHeight > 800) { // canvasの最大高さを超える場合は800pxにして横幅を調整
+                    newHeight = 800;
+                    newWidth = newHeight * aspectRatio;
+                }
+                
+                canvas.width = newWidth;
+                canvas.height = newHeight;
+
+                // canvasをクリアしてから画像を描画
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                // 画像を顔検出APIに送信
+                uploadImage(canvas, img);
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
+/**
+ * canvas上の画像をBlobに変換し、サーバーにPOST送信する関数
+ * @param {HTMLCanvasElement} canvasElement - 送信する画像が描画されたcanvas要素
+ */
+function uploadImage(canvasElement, originalImage) {
+    messageArea.textContent = '画像を送信中...';
+
+    // canvasの内容をBlobオブジェクトに変換します
+    canvasElement.toBlob((blob) => {
+        // FormDataオブジェクトを作成し、画像データを追加します
+        const formData = new FormData();
+        formData.append('file', blob, 'canvas-image.png');
+
+        const detectionMethod = document.getElementById('detectionMethod').value;
+        const confidence = parseFloat(document.getElementById('confidence').value);
+        const ratio = parseFloat(document.getElementById('ratio').value);
+        const shift = parseFloat(document.getElementById('shift').value);
+        fetch(`http://localhost:8081/face/?method=${detectionMethod}&confidence_level=${confidence}&ratio=${ratio}&shift=${shift}`, {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => {
+            // レスポンスが正常でない場合はエラーを投げる
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json(); // レスポンスをJSONとして解析
+        })
+        .then(data => {
+            // 成功した場合の処理
+            console.log('Success:', data);
+            messageArea.textContent = '送信成功！';
+            // レスポンスデータを使って矩形とスコアを描画する
+            drawBoundingBoxAndScore(data, originalImage, canvasElement, ctx);
+        })
+        .catch(error => {
+            // エラーが発生した場合の処理
+            console.error('Error:', error);
+            messageArea.textContent = `送信エラーが発生しました。コンソールを確認してください。`;
+        });
+
+    }, 'image/png'); // 画像フォーマットを指定。API側では無視しているのでどうでもいい
+}
+function drawBoundingBoxAndScore(data, originalImage, canvasElement, context) {
+    for (let i = 0; i < data.data.length; i++) {
+        const { score, box, image_size, label } = data.data[i];
+        if (!box || box.length < 4) {
+            console.error('Invalid box data');
+            return;
+        }
+
+        console.log(`Received box: ${box}, score: ${score}`, `image_size: ${image_size}`);
+        // 元画像とcanvasの表示サイズの比率を計算（これは後の拡張のために残してある）
+        const scaleX = 1;
+        const scaleY = 1;
+
+        // APIから受け取った座標をcanvas上の座標に変換
+        const x = box[0] / scaleX;
+        const y = box[1] / scaleY;
+        const width = (box[2] - box[0]) / scaleX;
+        const height = (box[3] - box[1]) / scaleY;
+
+        // ボックスを描画
+        context.strokeStyle = '#34D399';
+        context.lineWidth = 3;
+        context.strokeRect(x, y, width, height);
+
+        // ラベル・スコアを描画
+        const scoreText = `${label}: ${score.toFixed(4)}`;
+        context.fillStyle = '#34D399';
+        context.font = '16px Inter, sans-serif';
+        context.textAlign = 'left';
+        context.textBaseline = 'bottom';
+
+        // テキストの背景を描画して見やすくする
+        const textMetrics = context.measureText(scoreText);
+        context.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        context.fillRect(x, y - 22, textMetrics.width + 8, 22);
+
+        // テキストを描画
+        context.fillStyle = '#FFFFFF'; // 白色
+        context.fillText(scoreText, x + 4, y - 2);
+    }
+}
+    
+</script>
+</html>
